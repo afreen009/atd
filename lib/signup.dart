@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'color.dart';
 import 'fadeAnimation.dart';
 
 class SignupPage extends StatelessWidget {
@@ -7,7 +8,7 @@ class SignupPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.brightGreen,
       appBar: AppBar(
         elevation: 0,
         brightness: Brightness.light,

@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:maps_test/speedometer_container.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_maintained/sms.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
-
+import 'color.dart';
 import 'helper.dart';
 
 class Gmap extends StatefulWidget {
@@ -15,13 +18,29 @@ class Gmap extends StatefulWidget {
 
 class _GmapState extends State<Gmap> {
   GoogleMapController mapController;
-  var lat ;
+  var lat=13.0237 ;
   List<Marker> _markers = <Marker>[];
-   var lng ;
-  var loading;
+   var lng= 77.5566;
+  // var loading;
   var altitude;
   bool sitiosToggle = false;
   SmsSender sender = SmsSender();
+  final databaseRef = FirebaseDatabase.instance.reference();
+  // final Future<FirebaseApp> _future = Firebase.initializeApp();
+
+  void addData(String data) {
+    databaseRef.push().set({'name': data, 'comment': 'A good season'});
+  }
+
+  Future printFirebase()async{
+    await Firebase.initializeApp();
+    databaseRef.once().then((DataSnapshot snapshot) {
+      print('Data : ${snapshot.value}');
+      return snapshot;
+      
+    });
+  }
+
     // String address = "+918618210228";
     
 Timer timer;
@@ -29,17 +48,18 @@ Timer timer;
   Set<Marker> allMarkers = Set();
     @override
   initState() {
-    loading = true;
+    // loading = true;
+    
       timer = Timer.periodic(Duration(seconds: 5), (Timer t) => _getLocation());
       
 super.initState();
   }
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     timer.cancel();
   }
+  
   final String apiUrl = "https://api.thingspeak.com/channels/983649/feeds.json?api_key=0ADMCKQ1UGKBIQIJ&results=4";
    _getLocation() async {
      print(lat);
@@ -47,44 +67,46 @@ super.initState();
     String url=apiUrl;
   http.Response res = await http.get(url);
   final jsonData = json.decode(res.body);
+  final prefs = await SharedPreferences.getInstance();
   var map=Map<String, dynamic>.from(jsonData);
   var response=Data.fromJson(map);
   if (res.statusCode == 200) {
-    loading= false;
+    ImageConfiguration configuration = ImageConfiguration();
+    BitmapDescriptor  bitmapImage = await BitmapDescriptor.fromAssetImage(configuration,'assets/scooter.png');
        for(int i=0;i<4;i++){
-        //  altitude.add(response.feeds[i].field4);
-         print(altitude);
-         if(response.channel.lastEntryId==response.feeds[i].entryId){
-         print(i);
          if(response.feeds[i].field1 != null){
            setState(() {
              lat = double.parse(response.feeds[i].field1);
       lng = double.parse(response.feeds[i].field2);
-      altitude= double.parse(response.feeds[0].field6);
+      // set value
+      prefs.setDouble('lat', lat);
+      prefs.setDouble('lng', lng);
       print(double.parse(response.feeds[i].field1));
       print(double.parse(response.feeds[i].field2));
       _markers.add(
       Marker(
       markerId: MarkerId('SomeId'),
       position: LatLng(lat,lng),
+      icon: bitmapImage,
       infoWindow: InfoWindow(
-      title: 'The title of the marker'
+      title: 'You are here'
       )
      )
    );
            });
          }
-         }
          else if(response.feeds[i].field1==null){
            print('inside');
            print(lat);
              setState(() {
-               lat = double.parse(response.feeds[i-2].field1);
-      lng = double.parse(response.feeds[i-2].field2);
+               altitude = response.feeds[i].field4;
+               lat=prefs.getDouble('lat');
+               lng=prefs.getDouble('lng');
       _markers.add(
       Marker(
       markerId: MarkerId('SomeId'),
       position: LatLng(lat,lng),
+      icon: bitmapImage,
       infoWindow: InfoWindow(
       title: 'The title of the marker'
       )
@@ -109,67 +131,97 @@ super.initState();
       ),
     );
   }
-LatLng _createCenter() {
-    return _createLatLng(lat , lng);
-  }
+// LatLng _createCenter() {
+//     return _createLatLng(lat , lng);
+//   }
 
-  LatLng _createLatLng(double lat, double lng) {
-    return LatLng(lat, lng);
-  }
+  // LatLng _createLatLng(double lat, double lng) {
+  //   return LatLng(lat, lng);
+  // }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: Stack(
-          children: <Widget>[
-            loading == false
-                ? GoogleMap(
-                    // circles: circles,
-                    mapType: MapType.normal,
-                    onMapCreated: _onMapCreated,
-                    zoomGesturesEnabled: true,
-                    compassEnabled: true,
-                    scrollGesturesEnabled: true,
-                    rotateGesturesEnabled: true,
-                    tiltGesturesEnabled: true,
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(lat, lng),
-                      zoom: 13
+        // appBar: AppBar(backgroundColor: const Color.fromRGBO(20, 79, 76, 1.0),
+        // ),
+        body: FutureBuilder(
+          future: printFirebase(),
+           builder: (context, snapshot) {
+             Map<dynamic, dynamic> data = snapshot.data;
+              if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            }
+             else{return Stack(
+            children: <Widget>[
+              // loading == false ?
+                   GoogleMap(
+                      // circles: circles,
+                      mapType: MapType.normal,
+                      onMapCreated: _onMapCreated,
+                      zoomGesturesEnabled: true,
+                      compassEnabled: true,
+                      scrollGesturesEnabled: true,
+                      rotateGesturesEnabled: true,
+                      tiltGesturesEnabled: true,
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(data[0]['latitude'], data[0]['longitude']),
+                        zoom: 10
+                      ),
+                      markers: Set<Marker>.of(_markers),
                     ),
-                    markers: Set<Marker>.of(_markers),
-                  )
-                : Center(
-                    child: CircularProgressIndicator(),
-                  ),
-            Positioned(
-                top: MediaQuery.of(context).size.height -
-                    (MediaQuery.of(context).size.height - 70.0),
-                right: 10.0,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    _getLocation();
-                    _onMapCreated(mapController);
-                  },
-                  mini: true,
-                  backgroundColor: Colors.red,
-                  child: Icon(Icons.refresh),
-                )),
-                Positioned(
-                bottom: MediaQuery.of(context).size.height -
-                    (MediaQuery.of(context).size.height - 50.0),
-                left: 10.0,
-                child: Row(
-                  children: [
-                    Container(
-                      height:150,
-                      width:150,
-                      child:SpeedometerContainer(),
-                    ),
-                    RaisedButton(onPressed: (){
-                      SmsMessage message = SmsMessage('+918618210228', 'accident has occured!\n https://www.google.com/maps/search/?api=1&query=$lat,$lng');
-                      sender.sendSms(message);
-                    },child: Text('send message'),)
+                  // : Center(
+                  //     child: CircularProgressIndicator(),
+                  //   ),
+              Positioned(
+                  top: MediaQuery.of(context).size.height -
+                      (MediaQuery.of(context).size.height - 70.0),
+                  right: 10.0,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      _getLocation();
+                      _onMapCreated(mapController);
+                    },
+                    mini: true,
+                    backgroundColor: AppColors.brightGreen,
+                    child: Icon(Icons.my_location),
+                  )),
+                  Positioned(
+                  bottom: MediaQuery.of(context).size.height -
+                      (MediaQuery.of(context).size.height - 50.0),
+                  left: 10.0,
+                  child: Row(
+                    children: [
+                      Container(
+                        height:100,
+                      width:100,
+                      
+                        child:SpeedometerContainer(),
+                      ),
+                      SizedBox(width:10),
+                      Container(
+                        height:100,
+                      width:100,
+                      decoration: BoxDecoration(
+                      color: AppColors.brightGreen,
+		                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                      child: Column(
+                        mainAxisAlignment:MainAxisAlignment.center,
+                        children:[
+                          Image.asset('assets/mountain.png',height:40,width:40),
+                          SizedBox(height:10),
+                          altitude ==null ? Text('0m',
+                          style: TextStyle(
+                            color: Colors.white
+                      ),
+                      ):Text(altitude.toString(),
+                      style: TextStyle(
+                          color: Colors.white
+                      ),
+                      ),
+                        ]
+                      )
+                      ),
 //                     Container(
 //   child: Echarts(
 //   option: '''
@@ -191,20 +243,21 @@ LatLng _createCenter() {
 //   width: 300,
 //   height: 250,
 // )
-          //           Container(
-          //   padding: EdgeInsets.only(bottom: 10),
-          //   alignment: Alignment.bottomCenter,
-          //   child: Text(
-          //     'Highest speed:\n km/h',
-          //     style: TextStyle(
-          //         color: Colors.black
-          //     ),
-          //     textAlign: TextAlign.center,
-          //   )
-          // ),
-                  ],
-                )),
-          ],
+            //           Container(
+            //   padding: EdgeInsets.only(bottom: 10),
+            //   alignment: Alignment.bottomCenter,
+            //   child: Text(
+            //     'Highest speed:\n km/h',
+            //     style: TextStyle(
+            //         color: Colors.black
+            //     ),
+            //     textAlign: TextAlign.center,
+            //   )
+            // ),
+                    ],
+                  )),
+            ],
+          );}}
         ),
       ),
     );

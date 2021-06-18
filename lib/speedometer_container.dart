@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-
 import 'helper.dart';
 import 'speedometer.dart';
 
@@ -43,9 +42,8 @@ class _SpeedometerContainerState extends State<SpeedometerContainer> {
          }
          else if(response.feeds[i].field1==null){
            setState(() {
-             speed=0.0;
+             speed=10.0;
              print(speed);
-             print(double.parse(response.feeds[i-2].field3));
            });
            return;
          }
@@ -77,9 +75,14 @@ class _SpeedometerContainerState extends State<SpeedometerContainer> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-          child: Speedometer(
-            speed: speed,
-            speedRecord: speed,
+          child: Container(
+            decoration: BoxDecoration(
+                    color: Colors.blueGrey,
+		                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            child: Speedometer(
+              speed: speed,
+              speedRecord: speed,
+            ),
           )
         )
     );

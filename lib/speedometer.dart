@@ -272,26 +272,26 @@ class SpeedometerPainter extends CustomPainter {
     });
   }
 
-  void _drawGhostNeedle() {
-    if (speedRecord == 0.0) {
-      return;
-    }
+  // void _drawGhostNeedle() {
+  //   if (speedRecord == 0.0) {
+  //     return;
+  //   }
 
-    double rotation = 0.15 + (speedRecord / 100);
+  //   double rotation = 0.15 + (speedRecord / 100);
 
-    paintObject
-      ..color = Colors.white.withOpacity(0.5);
+  //   paintObject
+  //     ..color = Colors.white.withOpacity(0.5);
 
-    Path needlePath = Path()
-      ..moveTo(center.dx - size.width / 120, center.dy)
-      ..lineTo(center.dx + size.width / 120, center.dy)
-      ..lineTo(center.dx, center.dy + size.width / 3)
-      ..moveTo(center.dx - size.width / 120, center.dy);
+  //   Path needlePath = Path()
+  //     ..moveTo(center.dx - size.width / 120, center.dy)
+  //     ..lineTo(center.dx + size.width / 120, center.dy)
+  //     ..lineTo(center.dx, center.dy + size.width / 3)
+  //     ..moveTo(center.dx - size.width / 120, center.dy);
 
-    _drawRotated(rotation, () {
-      canvas.drawPath(needlePath, paintObject);
-    });
-  }
+  //   _drawRotated(rotation, () {
+  //     canvas.drawPath(needlePath, paintObject);
+  //   });
+  // }
 
   void _drawInnerCircle() {
     paintObject

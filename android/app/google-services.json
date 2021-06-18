@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "758023868650",
+    "firebase_url": "https://atd-data-tracking-default-rtdb.firebaseio.com",
+    "project_id": "atd-data-tracking",
+    "storage_bucket": "atd-data-tracking.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:758023868650:android:eebde4d185368a56168793",
+        "android_client_info": {
+          "package_name": "com.maps.atm_maps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "758023868650-qk08oj95ei0sdclndn47ivucl0pdct54.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maps.atm_maps",
+            "certificate_hash": "595d14845333cf4df58fe7f2bd507fb0b7153053"
+          }
+        },
+        {
+          "client_id": "758023868650-jbkoinfs3fnvgs3776qtml83989t3ng6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-5ijLkTxM6WiJ3Co0_4GcuI2aidCDj1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "758023868650-jbkoinfs3fnvgs3776qtml83989t3ng6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
