@@ -32,13 +32,13 @@ class _GmapState extends State<Gmap> {
     databaseRef.push().set({'name': data, 'comment': 'A good season'});
   }
 
-  Future printFirebase()async{
+  Future<DataSnapshot> printFirebase()async{
     await Firebase.initializeApp();
     databaseRef.once().then((DataSnapshot snapshot) {
-      print('Data : ${snapshot.value}');
       return snapshot;
       
     });
+    return null;
   }
 
     // String address = "+918618210228";
@@ -147,8 +147,11 @@ super.initState();
         // ),
         body: FutureBuilder(
           future: printFirebase(),
-           builder: (context, snapshot) {
-             Map<dynamic, dynamic> data = snapshot.data;
+           builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+            //  Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
+             Map data = snapshot.data.value;
+             List dataList = [];
+             dataList.add(data);
               if (snapshot.hasError) {
               return Text(snapshot.error.toString());
             }
