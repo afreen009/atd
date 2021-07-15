@@ -32,11 +32,12 @@ class _GmapState extends State<Gmap> {
     databaseRef.push().set({'name': data, 'comment': 'A good season'});
   }
 
-  Future<DataSnapshot> printFirebase()async{
+  Future printFirebase()async{
     await Firebase.initializeApp();
     databaseRef.once().then((DataSnapshot snapshot) {
+      print('snapshot value');
+      print(snapshot.value);
       return snapshot;
-      
     });
     return null;
   }
@@ -147,13 +148,23 @@ super.initState();
         // ),
         body: FutureBuilder(
           future: printFirebase(),
-           builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+           builder: (context, snapshot) {
             //  Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
-             Map data = snapshot.data.value;
-             List dataList = [];
-             dataList.add(data);
+            print("mapped data {$snapshot.data.value} ");
+             Map data =  snapshot.data;
+             print("mapped data $data");
+            //  List dataList = [];
+            //  dataList.add(data['DTproduction']);
+             print("your data $data");
+              if(snapshot.connectionState == ConnectionState.waiting){
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );}
               if (snapshot.hasError) {
-              return Text(snapshot.error.toString());
+              return Center(child: Text(snapshot.error.toString()));
+            }
+            else if ((snapshot.hasData)) {
+              return Center(child: Text("snapshot.error.toString()"));
             }
              else{return Stack(
             children: <Widget>[
