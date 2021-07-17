@@ -25,19 +25,25 @@ class _GmapState extends State<Gmap> {
   var altitude;
   bool sitiosToggle = false;
   SmsSender sender = SmsSender();
-  final databaseRef = FirebaseDatabase.instance.reference();
-  // final Future<FirebaseApp> _future = Firebase.initializeApp();
-
+  final databaseRef = FirebaseDatabase.instance.reference().child('DTproduction');
+  final Future<FirebaseApp> _future = Firebase.initializeApp();
+ @override
+  initState() {
+    // loading = true;
+    
+      timer = Timer.periodic(Duration(seconds: 5), (Timer t) => _getLocation());
+      
+super.initState();
+  }
   void addData(String data) {
     databaseRef.push().set({'name': data, 'comment': 'A good season'});
   }
 
-  Future printFirebase()async{
+  Future<DataSnapshot> printFirebase()async{
     await Firebase.initializeApp();
     databaseRef.once().then((DataSnapshot snapshot) {
-      print('snapshot value');
-      print(snapshot.value);
       return snapshot;
+      
     });
     return null;
   }
@@ -47,14 +53,7 @@ class _GmapState extends State<Gmap> {
 Timer timer;
   var sitios = [];
   Set<Marker> allMarkers = Set();
-    @override
-  initState() {
-    // loading = true;
-    
-      timer = Timer.periodic(Duration(seconds: 5), (Timer t) => _getLocation());
-      
-super.initState();
-  }
+   
   @override
   void dispose() {
     super.dispose();
@@ -147,26 +146,17 @@ super.initState();
         // appBar: AppBar(backgroundColor: const Color.fromRGBO(20, 79, 76, 1.0),
         // ),
         body: FutureBuilder(
-          future: printFirebase(),
-           builder: (context, snapshot) {
+          future: FirebaseDatabase.instance.reference().child('DTproduction').once(),
+           builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+             print("snapshot--------$snapshot");
             //  Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
-            print("mapped data {$snapshot.data.value} ");
-             Map data =  snapshot.data;
-             print("mapped data $data");
-            //  List dataList = [];
-            //  dataList.add(data['DTproduction']);
-             print("your data $data");
-              if(snapshot.connectionState == ConnectionState.waiting){
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );}
               if (snapshot.hasError) {
-              return Center(child: Text(snapshot.error.toString()));
+              return Text(snapshot.error.toString());
             }
-            else if ((snapshot.hasData)) {
-              return Center(child: Text("snapshot.error.toString()"));
-            }
-             else{return Stack(
+             else if(snapshot.hasData){
+               Map data = snapshot.data.value !=null ?snapshot.data.value:null;
+               print("data $data");
+               return Stack(
             children: <Widget>[
               // loading == false ?
                    GoogleMap(
@@ -179,7 +169,7 @@ super.initState();
                       rotateGesturesEnabled: true,
                       tiltGesturesEnabled: true,
                       initialCameraPosition: CameraPosition(
-                        target: LatLng(data[0]['latitude'], data[0]['longitude']),
+                        target: LatLng(double.parse('13.033713'), double.parse('77.614108')),
                         zoom: 10
                       ),
                       markers: Set<Marker>.of(_markers),
@@ -271,9 +261,10 @@ super.initState();
                     ],
                   )),
             ],
-          );}}
+          );}return CircularProgressIndicator();},
         ),
       ),
+      
     );
   }
 }
