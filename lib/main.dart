@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:maps_test/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home.dart';
 import 'map.dart';
 
 void main() async {

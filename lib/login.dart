@@ -5,7 +5,6 @@ import 'package:maps_test/sign_in.dart';
 import 'color.dart';
 import 'fadeAnimation.dart';
 import 'map.dart';
-import 'vehicletype.dart';
 
 class LoginPage extends StatelessWidget {
   @override
