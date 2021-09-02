@@ -6,13 +6,15 @@ import 'helper.dart';
 import 'speedometer.dart';
 
 class SpeedometerContainer extends StatefulWidget {
+  double speed;
+  SpeedometerContainer(this.speed);
   @override
   _SpeedometerContainerState createState() => _SpeedometerContainerState();
 }
 
 class _SpeedometerContainerState extends State<SpeedometerContainer> {
-  double speed=0.0;
-  double velocity ;
+  double speed = 0.0;
+  double velocity;
   double highestVelocity = 24.0;
 
   @override
@@ -20,38 +22,38 @@ class _SpeedometerContainerState extends State<SpeedometerContainer> {
     getVelocity();
     super.initState();
   }
+
   getVelocity() async {
-      final String apiUrl = "https://api.thingspeak.com/channels/983649/feeds.json?api_key=0ADMCKQ1UGKBIQIJ&results=4";
-      String url=apiUrl;
-  http.Response res = await http.get(url);
-  final jsonData = json.decode(res.body);
-  var map=Map<String, dynamic>.from(jsonData);
-  var response=Data.fromJson(map);
-  if (res.statusCode == 200) {
-    print('inside speedo');
-       for(int i=0;i<4;i++){
-         if(response.channel.lastEntryId==response.feeds[i].entryId){
-         print(i);
-         if(response.feeds[i].field1 != null){
-           setState(() {
-             speed= double.parse(response.feeds[i].field3);
-             print(speed);
-             print(double.parse(response.feeds[i].field3));
-           });
-         }
-         }
-         else if(response.feeds[i].field1==null){
-           setState(() {
-             speed=10.0;
-             print(speed);
-           });
-           return;
-         }
-     
-   }
-  } else {
-    throw Exception('Failed to load post');
-  }
+    final String apiUrl =
+        "https://api.thingspeak.com/channels/983649/feeds.json?api_key=0ADMCKQ1UGKBIQIJ&results=4";
+    String url = apiUrl;
+    http.Response res = await http.get(url);
+    final jsonData = json.decode(res.body);
+    var map = Map<String, dynamic>.from(jsonData);
+    var response = Data.fromJson(map);
+    if (res.statusCode == 200) {
+      print('inside speedo');
+      for (int i = 0; i < 4; i++) {
+        if (response.channel.lastEntryId == response.feeds[i].entryId) {
+          print(i);
+          if (response.feeds[i].field1 != null) {
+            setState(() {
+              speed = double.parse(response.feeds[i].field3);
+              print(speed);
+              print(double.parse(response.feeds[i].field3));
+            });
+          }
+        } else if (response.feeds[i].field1 == null) {
+          setState(() {
+            speed = 10.0;
+            print(speed);
+          });
+          return;
+        }
+      }
+    } else {
+      throw Exception('Failed to load post');
+    }
   }
   // void _onAccelerate(UserAccelerometerEvent event) {
   //   double newVelocity = sqrt(
@@ -74,17 +76,15 @@ class _SpeedometerContainerState extends State<SpeedometerContainer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-          child: Container(
-            decoration: BoxDecoration(
-                    color: Colors.blueGrey,
-		                borderRadius: BorderRadius.all(Radius.circular(8.0))),
-            child: Speedometer(
-              speed: speed,
-              speedRecord: speed,
-            ),
-          )
-        )
-    );
+        body: Center(
+            child: Container(
+      decoration: BoxDecoration(
+          color: Colors.blueGrey,
+          borderRadius: BorderRadius.all(Radius.circular(8.0))),
+      child: Speedometer(
+        speed: this.speed,
+        speedRecord: this.speed,
+      ),
+    )));
   }
 }

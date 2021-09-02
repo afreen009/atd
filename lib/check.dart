@@ -1,4 +1,3 @@
-
 import 'package:after_layout/after_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
@@ -14,15 +13,15 @@ class Splash extends StatefulWidget {
 class SplashState extends State<Splash> with AfterLayoutMixin<Splash> {
   Future checkFirstSeen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-      bool _seen = true;
-      if (!_seen) {
-        Navigator.of(context).pushReplacement(
-            new MaterialPageRoute(builder: (context) => new HomePage()));
-      } else {
-        await prefs.setBool('seen', true);
-        Navigator.of(context).pushReplacement(new MaterialPageRoute(
-            builder: (context) => new Gmap()));
-      }
+    bool _seen = true;
+    if (!_seen) {
+      // Navigator.of(context).pushReplacement(
+      //     new MaterialPageRoute(builder: (context) => new HomePage()));
+    } else {
+      await prefs.setBool('seen', true);
+      Navigator.of(context).pushReplacement(
+          new MaterialPageRoute(builder: (context) => new Gmap()));
+    }
   }
 
   @override
@@ -33,10 +32,6 @@ class SplashState extends State<Splash> with AfterLayoutMixin<Splash> {
       body: new Center(
         child: new Text('Loading...'),
       ),
-
     );
   }
-
 }
-
-
