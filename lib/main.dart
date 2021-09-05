@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maps_test/ticket_history.dart';
 // Import the provider plugin
 import 'package:provider/provider.dart';
 // Import the firebase plugins
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
           '/signin': (context) => SignIn(),
           '/home': (context) => Gmap(),
           '/userInfo':(context) => UsersInfo(),
+          '/ticket':(context) => TicketHistory(),
         },
       ),
     );
@@ -56,7 +58,7 @@ class AuthenticationWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseuser = context.watch<User>();
-    if (firebaseuser != null) {
+    if (firebaseuser != null ) {
       return Gmap();
     }
     return SignIn();

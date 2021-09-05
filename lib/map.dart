@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -47,11 +48,13 @@ class _GmapState extends State<Gmap> {
   }
 
   Future prefs = SharedPreferences.getInstance();
-
+   String uid = "";
   // String address = "+918618210228";
   BitmapDescriptor markerIcon;
   Timer timer;
   var sitios = [];
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
   // Set<Marker> allMarkers = Set();
   LatLng currentPostion;
   @override
@@ -60,13 +63,23 @@ class _GmapState extends State<Gmap> {
     //     Timer.periodic(Duration(seconds: 15000), (Timer t) => _getLocation());
     super.initState();
     _askCameraPermission();
+    getUid();
   }
-
+ Future<void> getUid() async {
+   SharedPreferences prefs = await SharedPreferences.getInstance();
+   setState(() {
+     print("getting uid");
+     uid = prefs.getString('uid');
+     print(uid);
+   });
+ }
   void _askCameraPermission() async {
+    
     if (await Permission.contacts.request().isGranted) {
       _permissionStatus = await Permission.contacts.status;
       print("_permissionStatus$_permissionStatus");
-      setState(() {
+      setState(()  {
+       
         permission = true;
       });
     }
@@ -213,6 +226,7 @@ class _GmapState extends State<Gmap> {
 
   @override
   Widget build(BuildContext context) {
+     User user = _firebaseAuth.currentUser;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -268,6 +282,10 @@ class _GmapState extends State<Gmap> {
                 // ...
                 // Then close the drawer
                 context.read<AuthenticationService>().signOut();
+                 Navigator.pushNamed(
+                    context,
+                    '/',
+                  );
                 // Navigator.pop(context);
               },
             ),
@@ -292,11 +310,21 @@ class _GmapState extends State<Gmap> {
           ],
         ),
           ),
-      
+      body: StreamBuilder(
+            stream: FirebaseFirestore.instance.collection(user.uid).snapshots(),
+            builder: (context, snapshot) {
+              if(snapshot.hasData){
+                
+                print("the data ---------------");
+                print(snapshot.data);
+              }
+              return Container();
+            },
+      ),
 //           body: FutureBuilder(
 //               future: FirebaseDatabase.instance
 //                   .reference()
-//                   .child('DTproduction')
+//                   .child(uid)
 //                   .once(),
 //               builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
 //                 //  Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
@@ -396,53 +424,53 @@ class _GmapState extends State<Gmap> {
 //                             backgroundColor: AppColors.brightGreen,
 //                             child: Icon(Icons.my_location),
 //                           )),
-//                       Positioned(
-//                           bottom: MediaQuery.of(context).size.height -
-//                               (MediaQuery.of(context).size.height - 50.0),
-//                           left: 10.0,
-//                           child: Row(
-//                             children: [
-//                               Container(
-//                                 height: 100,
-//                                 width: 100,
-//                                 child: SpeedometerContainer(
-//                                     double.parse(data['GpsSpeed'])),
-//                               ),
+// //                       Positioned(
+// //                           bottom: MediaQuery.of(context).size.height -
+// //                               (MediaQuery.of(context).size.height - 50.0),
+// //                           left: 10.0,
+// //                           child: Row(
+// //                             children: [
+// //                               Container(
+// //                                 height: 100,
+// //                                 width: 100,
+// //                                 child: SpeedometerContainer(
+// //                                     double.parse(data['GpsSpeed'])),
+// //                               ),
 
-// //                     Container(
-// //   child: Echarts(
-// //   option: '''
-// //     {
-// //       xAxis: {
-// //         type: 'Altitude Value',
-// //         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-// //       },
-// //       yAxis: {
-// //         type: ''
-// //       },
-// //       series: [{
-// //         data: [820, 932, 901, 934, 1290, 1330, 1320],
-// //         type: 'line'
-// //       }]
-// //     }
-// //   ''',
-// //   ),
-// //   width: 300,
-// //   height: 250,
-// // )
-//                               //           Container(
-//                               //   padding: EdgeInsets.only(bottom: 10),
-//                               //   alignment: Alignment.bottomCenter,
-//                               //   child: Text(
-//                               //     'Highest speed:\n km/h',
-//                               //     style: TextStyle(
-//                               //         color: Colors.black
-//                               //     ),
-//                               //     textAlign: TextAlign.center,
-//                               //   )
-//                               // ),
-//                             ],
-//                           )),
+// // //                     Container(
+// // //   child: Echarts(
+// // //   option: '''
+// // //     {
+// // //       xAxis: {
+// // //         type: 'Altitude Value',
+// // //         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+// // //       },
+// // //       yAxis: {
+// // //         type: ''
+// // //       },
+// // //       series: [{
+// // //         data: [820, 932, 901, 934, 1290, 1330, 1320],
+// // //         type: 'line'
+// // //       }]
+// // //     }
+// // //   ''',
+// // //   ),
+// // //   width: 300,
+// // //   height: 250,
+// // // )
+// //                               //           Container(
+// //                               //   padding: EdgeInsets.only(bottom: 10),
+// //                               //   alignment: Alignment.bottomCenter,
+// //                               //   child: Text(
+// //                               //     'Highest speed:\n km/h',
+// //                               //     style: TextStyle(
+// //                               //         color: Colors.black
+// //                               //     ),
+// //                               //     textAlign: TextAlign.center,
+// //                               //   )
+// //                               // ),
+// //                             ],
+// //                           )),
 //                     ],
 //                   );
 //                 }
