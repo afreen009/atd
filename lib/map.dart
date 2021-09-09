@@ -22,10 +22,12 @@ class Gmap extends StatefulWidget {
 
 class _GmapState extends State<Gmap> {
   GoogleMapController mapController;
-  var lat = 13.0237;
+  var lat;
   List<Marker> _markers = <Marker>[];
-  var lng = 77.5566;
+  var lng;
   Position _currentPosition;
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{}; // CLASS MEMBER, MAP OF MARKS
+
   // var loading;
   var altitude;
   bool sitiosToggle = false;
@@ -33,6 +35,7 @@ class _GmapState extends State<Gmap> {
   bool permission = false;
   var _permissionStatus;
   final databaseRef = FirebaseDatabase.instance.reference();
+
   // final Future<FirebaseApp> _future = Firebase.initializeApp();
 
   void addData(String data) {
@@ -48,7 +51,7 @@ class _GmapState extends State<Gmap> {
   }
 
   Future prefs = SharedPreferences.getInstance();
-   String uid = "";
+  String uid = "";
   // String address = "+918618210228";
   BitmapDescriptor markerIcon;
   Timer timer;
@@ -65,21 +68,21 @@ class _GmapState extends State<Gmap> {
     _askCameraPermission();
     getUid();
   }
- Future<void> getUid() async {
-   SharedPreferences prefs = await SharedPreferences.getInstance();
-   setState(() {
-     print("getting uid");
-     uid = prefs.getString('uid');
-     print(uid);
-   });
- }
+
+  Future<void> getUid() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      print("getting uid");
+      uid = prefs.getString('uid');
+      print(uid);
+    });
+  }
+
   void _askCameraPermission() async {
-    
     if (await Permission.contacts.request().isGranted) {
       _permissionStatus = await Permission.contacts.status;
       print("_permissionStatus$_permissionStatus");
-      setState(()  {
-       
+      setState(() {
         permission = true;
       });
     }
@@ -105,23 +108,6 @@ class _GmapState extends State<Gmap> {
         icon: bitmapImage,
         infoWindow: InfoWindow(title: 'You are bike is here')));
   }
-
-  _onMapCreated(GoogleMapController controller) {
-    var config = createLocalImageConfiguration(context, size: Size(30, 30));
-    BitmapDescriptor.fromAssetImage(config, 'assets/scooter.png')
-        .then((onValue) {
-      setState(() {
-        markerIcon = onValue;
-      });
-    });
-    mapController = controller;
-    mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: LatLng(lat, lng), zoom: 20.0),
-      ),
-    );
-  }
-
   // _getCurrentLocation() async {
   //   Geolocator.getCurrentPosition(
   //           desiredAccuracy: LocationAccuracy.best,
@@ -166,27 +152,25 @@ class _GmapState extends State<Gmap> {
   _getUsersLocations(GoogleMapController controller) async {
     var location = new Location();
     LocationData _currentPosition;
-     mapController = controller;
+    mapController = controller;
     try {
       _currentPosition = await location.getLocation();
       ImageConfiguration configuration = ImageConfiguration();
       BitmapDescriptor bitmapImage = await BitmapDescriptor.fromAssetImage(
           configuration, 'assets/scooter.png');
-          mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: LatLng(_currentPosition.latitude, _currentPosition.longitude), zoom: 20.0),
-      ),
-    );
-          _markers.add(
-      Marker(
-      markerId: MarkerId('ME'),
-      position:
+      mapController.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+              target:
+                  LatLng(_currentPosition.latitude, _currentPosition.longitude),
+              zoom: 20.0),
+        ),
+      );
+      _markers.add(Marker(
+          markerId: MarkerId('ME'),
+          position:
               LatLng(_currentPosition.latitude, _currentPosition.longitude),
-      infoWindow: InfoWindow(
-      title: 'You are here'
-      )
-     )
-   );
+          infoWindow: InfoWindow(title: 'You are here')));
       // _markers.add(Marker(
       //     markerId: MarkerId('SomeId'),
       //     position:
@@ -226,259 +210,281 @@ class _GmapState extends State<Gmap> {
 
   @override
   Widget build(BuildContext context) {
-     User user = _firebaseAuth.currentUser;
+    User user = _firebaseAuth.currentUser;
+   DatabaseReference databaseReference = FirebaseDatabase().reference();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-          // appBar: AppBar(backgroundColor: const Color.fromRGBO(20, 79, 76, 1.0),
-          // ),
-          appBar: AppBar(title: Text('ATD'),centerTitle: true,),
-          
-          drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
+        // appBar: AppBar(backgroundColor: const Color.fromRGBO(20, 79, 76, 1.0),
+        // ),
+        appBar: AppBar(
+          title: Text('ATD'),
+          centerTitle: true,
+        ),
+
+        drawer: Drawer(
+          // Add a ListView to the drawer. This ensures the user can scroll
+          // through the options in the drawer if there isn't enough vertical
+          // space to fit everything.
+          child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text('ATD'),
               ),
-              child: Text('ATD'),
-            ),
-            ListTile(
-              title: const Text('Home'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-               Navigator.pushNamed(context, '/home');
-              },
-            ),
-            ListTile(
-              title: const Text('Ticket History'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                // Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('User Info'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pushNamed(context, '/userInfo');
-              },
-            ),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                context.read<AuthenticationService>().signOut();
-                 Navigator.pushNamed(
+              ListTile(
+                title: const Text('Home'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  Navigator.pushNamed(context, '/home');
+                },
+              ),
+              ListTile(
+                title: const Text('Ticket History'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  // Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('User Info'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  Navigator.pushNamed(context, '/userInfo');
+                },
+              ),
+              ListTile(
+                title: const Text('Logout'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  context.read<AuthenticationService>().signOut();
+                  Navigator.pushNamed(
                     context,
                     '/',
                   );
-                // Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Terms and Conditions'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Help'),
-              onTap: () {
-                // Update the state of the app
-                // ...
-                // Then close the drawer
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-          ),
-      body: StreamBuilder(
-            stream: FirebaseFirestore.instance.collection(user.uid).snapshots(),
-            builder: (context, snapshot) {
-              if(snapshot.hasData){
-                
-                print("the data ---------------");
-                print(snapshot.data);
-              }
-              return Container();
-            },
-      ),
-//           body: FutureBuilder(
-//               future: FirebaseDatabase.instance
-//                   .reference()
-//                   .child(uid)
-//                   .once(),
-//               builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
-//                 //  Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
-
-//                 if (snapshot.hasError) {
-//                   return Text(snapshot.error.toString());
-//                 } else if (snapshot.hasData) {
-//                   List noList = [
-//                     '+919972365352',
-//                     '+919018121178',
-//                     // '+919845752038',
-//                     // '+918618210228'
-//                   ];
-//                   Map data =
-//                       snapshot.data.value != null ? snapshot.data.value : null;
-//                   print("afreennnnnn${data['Accident']}");
-//                   bool accident = data['Accident'] == 1 ? true : false;
-//                   print("afreennnnnn $accident");
-//                   if (accident) {
-//                     print("SMS inside!");
-//                     // for (int i = 0; i < noList.length; i++) {
-//                     //   String _message = '';
-//                     //   SmsMessage message = SmsMessage(
-//                     //       noList[i], 'Your friend might have had accident');
-//                     //   message.onStateChanged.listen((state) {
-//                     //     if (state == SmsMessageState.Sent) {
-//                     //       print("SMS is sent!");
-//                     //       setState(() {
-//                     //         _message = "SMS is sent";
-//                     //       });
-//                     //     } else if (state == SmsMessageState.Delivered) {
-//                     //       print("SMS is delivered!");
-//                     //       setState(() {
-//                     //         _message = "SMS is delivered!";
-//                     //       });
-//                     //     }
-//                     //   });
-//                     //   sender.sendSms(message);
-//                     // }
-//                   }
-//                   // _markers.add(Marker(
-//                   //     markerId: MarkerId('SomeId'),
-//                   //     position: LatLng(double.parse(data['latitude']),
-//                   //         double.parse(data['longitude'])),
-//                   //     icon: markerIcon,
-//                   //     infoWindow: InfoWindow(title: 'You are vehicle here')));
-//                   return Stack(
-//                     children: <Widget>[
-//                       // loading == false ?
-//                       GoogleMap(
-//                         // circles: circles,
-//                         mapType: MapType.normal,
-//                         myLocationEnabled: true,
-//                         onMapCreated: _onMapCreated,
-//                         zoomGesturesEnabled: true,
-//                         compassEnabled: true,
-//                         scrollGesturesEnabled: true,
-//                         rotateGesturesEnabled: true,
-//                         tiltGesturesEnabled: true,
-//                         initialCameraPosition: CameraPosition(
-//                             // target: LatLng(12.66, 17.444),
-//                             target: LatLng(27.2046, 77.4977),
-//                             zoom: 10),
-//                         markers: Set<Marker>.of(_markers),
-//                       ),
-//                       // : Center(
-//                       //     child: CircularProgressIndicator(),
-//                       //   ),
-//                       Positioned(
-//                           top: MediaQuery.of(context).size.height -
-//                               (MediaQuery.of(context).size.height - 70.0),
-//                           right: 10.0,
-//                           child: FloatingActionButton(
-//                             onPressed: () {
-//                               _getUsersLocations(mapController);
-//                               // _onMapCreated(mapController);
-//                             },
-//                             mini: true,
-//                             backgroundColor: Colors.amber,
-//                             child: Icon(Icons.my_location),
-//                           )),
-//                       Positioned(
-//                           top: MediaQuery.of(context).size.height -
-//                               (MediaQuery.of(context).size.height - 170.0),
-//                           right: 10.0,
-//                           child: FloatingActionButton(
-//                             onPressed: () {
-//                               _getLocation(double.parse(data['latitude']),
-//                                   double.parse(data['longitude']));
-//                               setState(() {
-//                                 lat = double.parse(data['latitude']);
-//                                 lng = double.parse(data['longitude']);
-//                               });
-//                               _onMapCreated(mapController);
-//                             },
-//                             mini: true,
-//                             backgroundColor: AppColors.brightGreen,
-//                             child: Icon(Icons.my_location),
-//                           )),
-// //                       Positioned(
-// //                           bottom: MediaQuery.of(context).size.height -
-// //                               (MediaQuery.of(context).size.height - 50.0),
-// //                           left: 10.0,
-// //                           child: Row(
-// //                             children: [
-// //                               Container(
-// //                                 height: 100,
-// //                                 width: 100,
-// //                                 child: SpeedometerContainer(
-// //                                     double.parse(data['GpsSpeed'])),
-// //                               ),
-
-// // //                     Container(
-// // //   child: Echarts(
-// // //   option: '''
-// // //     {
-// // //       xAxis: {
-// // //         type: 'Altitude Value',
-// // //         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-// // //       },
-// // //       yAxis: {
-// // //         type: ''
-// // //       },
-// // //       series: [{
-// // //         data: [820, 932, 901, 934, 1290, 1330, 1320],
-// // //         type: 'line'
-// // //       }]
-// // //     }
-// // //   ''',
-// // //   ),
-// // //   width: 300,
-// // //   height: 250,
-// // // )
-// //                               //           Container(
-// //                               //   padding: EdgeInsets.only(bottom: 10),
-// //                               //   alignment: Alignment.bottomCenter,
-// //                               //   child: Text(
-// //                               //     'Highest speed:\n km/h',
-// //                               //     style: TextStyle(
-// //                               //         color: Colors.black
-// //                               //     ),
-// //                               //     textAlign: TextAlign.center,
-// //                               //   )
-// //                               // ),
-// //                             ],
-// //                           )),
-//                     ],
-//                   );
-//                 }
-//                 return Center(
-//                   child: CircularProgressIndicator(),
-//                 );
-//               }),
+                  // Navigator.pop(context);
+                },
               ),
+              ListTile(
+                title: const Text('Terms and Conditions'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Help'),
+                onTap: () {
+                  // Update the state of the app
+                  // ...
+                  // Then close the drawer
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ),
+        
+          body: FutureBuilder(
+              future: FirebaseDatabase.instance
+                  .reference()
+                  .child(uid)
+                  .once(),
+              builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+                //  Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
+
+                if (snapshot.hasError) {
+                  return Text(snapshot.error.toString());
+                } else if (snapshot.hasData) {
+                  
+  
+                  List noList = [
+                    '+919972365352',
+                    '+919018121178',
+                    // '+919845752038',
+                    // '+918618210228'
+                  ];
+                 
+
+                  Map data =
+                      snapshot.data.value != null ? snapshot.data.value : null;
+                       Marker resultMarker = Marker(
+  markerId: MarkerId('you are here'),
+  infoWindow: InfoWindow(
+  title: "you are here",
+  snippet: "you are here"),
+  position: LatLng(double.parse(data['latitude']),
+  double.parse(data['latitude'])),
+);
+// Add it to Set
+_markers.add(resultMarker);
+                  print("afreennnnnn${data['latitude']}");
+                  bool accident = data['Accident'] == 1 ? true : false;
+                  print("afreennnnnn $accident");
+                  _onMapCreated(GoogleMapController controller) {
+    var config = createLocalImageConfiguration(context, size: Size(30, 30));
+    BitmapDescriptor.fromAssetImage(config, 'assets/scooter.png')
+        .then((onValue) {
+      setState(() {
+        markerIcon = onValue;
+      });
+    });
+    mapController = controller;
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: LatLng(double.parse(data['latitude']), double.parse(data['longitude'])), zoom: 20.0),
+      ),
+    );
+  }
+                  if (accident) {
+                    print("SMS inside!");
+                    // for (int i = 0; i < noList.length; i++) {
+                    //   String _message = '';
+                    //   SmsMessage message = SmsMessage(
+                    //       noList[i], 'Your friend might have had accident');
+                    //   message.onStateChanged.listen((state) {
+                    //     if (state == SmsMessageState.Sent) {
+                    //       print("SMS is sent!");
+                    //       setState(() {
+                    //         _message = "SMS is sent";
+                    //       });
+                    //     } else if (state == SmsMessageState.Delivered) {
+                    //       print("SMS is delivered!");
+                    //       setState(() {
+                    //         _message = "SMS is delivered!";
+                    //       });
+                    //     }
+                    //   });
+                    //   sender.sendSms(message);
+                    // }
+                  }
+                  // _markers.add(Marker(
+                  //     markerId: MarkerId('SomeId'),
+                  //     position: LatLng(double.parse(data['latitude']),
+                  //         double.parse(data['longitude'])),
+                  //     icon: markerIcon,
+                  //     infoWindow: InfoWindow(title: 'You are vehicle here')));
+                  return Stack(
+                    children: <Widget>[
+                      // loading == false ?
+                      GoogleMap(
+                        // circles: circles,
+                        mapType: MapType.normal,
+                        myLocationEnabled: true,
+                        onMapCreated: _onMapCreated,
+                        zoomGesturesEnabled: true,
+                        compassEnabled: true,
+                        scrollGesturesEnabled: true,
+                        rotateGesturesEnabled: true,
+                        tiltGesturesEnabled: true,
+                        initialCameraPosition: CameraPosition(
+                            // target: LatLng(12.66, 17.444),
+                            target: LatLng(double.parse(data['latitude']), double.parse(data['longitude'])),
+                            zoom: 15),
+                      ),
+                      // : Center(
+                      //     child: CircularProgressIndicator(),
+                      //   ),
+                      Positioned(
+                          top: MediaQuery.of(context).size.height -
+                              (MediaQuery.of(context).size.height - 70.0),
+                          right: 10.0,
+                          child: FloatingActionButton(
+                            onPressed: () {
+                              _getUsersLocations(mapController);
+                            },
+                            mini: true,
+                            backgroundColor: Colors.amber,
+                            child: Icon(Icons.my_location),
+                          )),
+                      Positioned(
+                          top: MediaQuery.of(context).size.height -
+                              (MediaQuery.of(context).size.height - 170.0),
+                          right: 10.0,
+                          child: FloatingActionButton(
+                            onPressed: () {
+                              _getLocation(double.parse(data['latitude']),
+                                  double.parse(data['longitude']));
+                              setState(() {
+                                lat = double.parse(data['latitude']);
+                                lng = double.parse(data['longitude']);
+                              });
+                              _onMapCreated(mapController);
+                            },
+                            mini: true,
+                            backgroundColor: AppColors.brightGreen,
+                            child: Icon(Icons.my_location),
+                          )),
+//                       Positioned(
+//                           bottom: MediaQuery.of(context).size.height -
+//                               (MediaQuery.of(context).size.height - 50.0),
+//                           left: 10.0,
+//                           child: Row(
+//                             children: [
+//                               Container(
+//                                 height: 100,
+//                                 width: 100,
+//                                 child: SpeedometerContainer(
+//                                     double.parse(data['GpsSpeed'])),
+//                               ),
+
+// //                     Container(
+// //   child: Echarts(
+// //   option: '''
+// //     {
+// //       xAxis: {
+// //         type: 'Altitude Value',
+// //         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+// //       },
+// //       yAxis: {
+// //         type: ''
+// //       },
+// //       series: [{
+// //         data: [820, 932, 901, 934, 1290, 1330, 1320],
+// //         type: 'line'
+// //       }]
+// //     }
+// //   ''',
+// //   ),
+// //   width: 300,
+// //   height: 250,
+// // )
+//                               //           Container(
+//                               //   padding: EdgeInsets.only(bottom: 10),
+//                               //   alignment: Alignment.bottomCenter,
+//                               //   child: Text(
+//                               //     'Highest speed:\n km/h',
+//                               //     style: TextStyle(
+//                               //         color: Colors.black
+//                               //     ),
+//                               //     textAlign: TextAlign.center,
+//                               //   )
+//                               // ),
+//                             ],
+//                           )),
+                    ],
+                  );
+                }
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }),
+      ),
     );
   }
 }
